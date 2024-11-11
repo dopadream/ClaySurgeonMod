@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyDescriptionAttribute("A different take on the Barber")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+8cc32c81dcc87db6bca33d7560904d3a259e53b7")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+e3ab8c2b04d87faff81887e4ce757448786c42f7")]
 [assembly: System.Reflection.AssemblyProductAttribute("ClaySurgeonMod")]
 [assembly: System.Reflection.AssemblyTitleAttribute("ClaySurgeonMod")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
