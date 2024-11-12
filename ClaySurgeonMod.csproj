@@ -33,5 +33,14 @@
     <Reference Include="Unity.Netcode.Runtime">
       <HintPath>C:\Program Files (x86)\Steam\steamapps\common\Lethal Company\Lethal Company_Data\Managed\Unity.Netcode.Runtime.dll</HintPath>
     </Reference>
+    <Reference Include="BarberFixes">
+      <HintPath>C:\Users\Stephanie\AppData\Roaming\com.kesomannen.gale\lethal-company\profiles\surgeon test\BepInEx\plugins\ButteryStancakes-BarberFixes\BarberFixes.dll</HintPath>
+    </Reference>
+    <Reference Include="VentSpawnFix">
+      <HintPath>C:\Users\Stephanie\AppData\Roaming\com.kesomannen.gale\lethal-company\profiles\surgeon test\BepInEx\plugins\ButteryStancakes-VentSpawnFix\VentSpawnFix.dll</HintPath>
+    </Reference>
+    <Reference Include="LethalConfig">
+      <HintPath>C:\Users\Stephanie\AppData\Roaming\com.kesomannen.gale\lethal-company\profiles\surgeon test\BepInEx\plugins\AinaVT-LethalConfig\LethalConfig\LethalConfig.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>
