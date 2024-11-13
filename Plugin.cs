@@ -156,7 +156,7 @@ namespace ClaySurgeonMod
                                 else
                                     Plugin.Logger.LogWarning($"allEnemiesList: Tried to cache two different enemies by same name ({spawnableEnemyWithRarity.enemyType.name})");
                             }
-                            else if (spawnableEnemyWithRarity.enemyType.enemyName == dummyType.enemyName)
+                            else if (spawnableEnemyWithRarity.enemyType.enemyName == "Clay Surgeon")
                             {
                                 spawnableEnemyWithRarity.enemyType.spawnInGroupsOf = 2;
                                 spawnableEnemyWithRarity.enemyType.MaxCount = 8;
