@@ -61,7 +61,7 @@ namespace ClaySurgeonMod
                     "Controls the volume of the Clay Surgeon's proximity ambience.",
                     new AcceptableValueRange<float>(0.0f, 1.0f)));
 
-            configIridescence = Config.Bind("Aesthetics", "Iridescence", 0.125f,
+            configIridescence = Config.Bind("Aesthetics", "Iridescence", 0.25f,
                 new ConfigDescription(
                     "Controls the iridescence of the Clay Surgeon's clay material.",
                     new AcceptableValueRange<float>(0.0f, 1.0f)));
@@ -183,7 +183,10 @@ namespace ClaySurgeonMod
                 __instance.creatureAnimator = clayClone.GetComponentInChildren<Animator>();
                 __instance.skin = clayClone.GetComponentInChildren<SkinnedMeshRenderer>();
                 __instance.gameObject.GetComponentInChildren<ScanNodeProperties>().headerText = "Clay Surgeon";
+                __instance.skinnedMeshRenderers = clayClone.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
+                __instance.meshRenderers = clayClone.gameObject.GetComponentsInChildren<MeshRenderer>();
                 clayClone.GetComponentInChildren<EnemyAnimationEvent>().mainScript = __instance.gameObject.GetComponentInChildren<EnemyAnimationEvent>().mainScript;
+
 
             }
 
@@ -204,7 +207,7 @@ namespace ClaySurgeonMod
 
             static void ClaySurgeonAIPostUpdate(ClaySurgeonAI __instance)
             {
-                Logger.LogDebug("Speed: " + __instance.currentInterval);
+                //Logger.LogDebug("Speed: " + __instance.currentInterval);
                 AudioSource[] sources = __instance.gameObject.GetComponentsInChildren<AudioSource>();
                 foreach (AudioSource source in sources)
                 {
