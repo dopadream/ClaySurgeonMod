@@ -20,5 +20,5 @@ There's also a custom bestiary entry, be sure to check that out!
 
 ButteryStancakes for helping me code a majority of the mod! \
 IAmBatby for helping me fix the terminal video not playing! \
-lunarbunten for the icon!
+lunarbunten for the icon! \
 [The clay shader that I used!](https://blendswap.com/blend/29812)
