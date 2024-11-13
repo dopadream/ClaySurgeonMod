@@ -24,7 +24,7 @@ namespace ClaySurgeonMod
     [BepInDependency("butterystancakes.lethalcompany.barberfixes")]
     public class Plugin : BaseUnityPlugin
     {
-        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.0.0";
+        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.1.0";
         internal static new ManualLogSource Logger;
         internal static GameObject clayPrefab;
         internal static GameObject barberPrefab;
