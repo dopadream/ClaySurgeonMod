@@ -10,3 +10,9 @@ There's also a custom bestiary entry, be sure to check that out!
 
 <img title="Clay Surgeon" alt="A showcase of the Clay Surgeon model." src="https://i.imgur.com/K4iYz16.png">
 
+
+# Credits
+
+ButteryStancakes for helping me code a majority of the mod! \
+IAmBatby for helping me fix the terminal video not playing! \
+[The clay shader that I used!](https://blendswap.com/blend/29812)
