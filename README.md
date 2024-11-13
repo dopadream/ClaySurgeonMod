@@ -1,15 +1,13 @@
 
 # Clay Surgeon Overhaul
 
-This mod completely replaces the Barber's model with an overhauled model I made from scratch in blender and applied a clay shader to. It should hopefully meet the standards of Lethal Company's roster (subjectively) better. \
-The animations have also been completely remade. There are also custom proximity ambience sounds that I made in FL Studio.
+This mod completely replaces the Barber's model with a new design I made from scratch in blender that I applied a clay shader to. It should hopefully meet the standards of Lethal Company's roster (subjectively) better. \
+The animations have also been completely remade, and it adds a new proximity based ambient sound with a volume slider.
 
-This mod also depends on BarberFixes/VentSpawnFix as I have also tweaked the spawning mechanics of the Barber to both add it to the list of infestations that can happen as well.
+This mod also depends on BarberFixes/VentSpawnFix as I have also tweaked the spawning mechanics of the Barber to both add it to the list of infestations that can happen as well as making it spawn in pairs of 2 with a cap of 8.
 Everything is configurable. 
 
-By default, the Clay Surgeon's acceleration will increase at a curve, increasing more during the start of the day and less near the end. This is also configurable.
-
-Clay Surgeons spawn in pairs (again, by default), if you see one, keep your eyes peeled! If you're having trouble, turn on ``drumrollFromAll`` in BarberFixes' config!
+The Clay Surgeon's movement acceleration will increase at a curve, increasing more during the start of the day and less near the end. Clay Surgeons also spawn in pairs, if you see one, keep your eyes peeled! If you're having trouble, turn on ``drumrollFromAll`` in BarberFixes' config! All of this is configurable! 
 
 There's also a custom bestiary entry, be sure to check that out!
 
@@ -20,5 +18,5 @@ There's also a custom bestiary entry, be sure to check that out!
 
 ButteryStancakes for helping me code a majority of the mod! \
 IAmBatby for helping me fix the terminal video not playing! \
-lunarbunten for the icon! \
+lunarbunten for helping with the icon! \
 [The clay shader that I used!](https://blendswap.com/blend/29812)
