@@ -4,43 +4,43 @@ using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using UnityEngine.Assertions.Must;
-using UnityEngine.Video;
-using LethalConfig;
 using BepInEx.Configuration;
-using LethalConfig.ConfigItems.Options;
-using LethalConfig.ConfigItems;
-using static UnityEngine.UIElements.UIR.Implementation.UIRStylePainter;
 using BarberFixes;
 using BepInEx.Bootstrap;
 
 namespace ClaySurgeonMod
 {
     [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
-    [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("butterystancakes.lethalcompany.ventspawnfix")]
     [BepInDependency("butterystancakes.lethalcompany.barberfixes")]
+    [BepInIncompatibility("dopadream.lethalcompany.barbermaterialtweaks")]
+    [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
         const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.2.1", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
         internal static new ManualLogSource Logger;
-        internal static GameObject clayPrefab;
-        internal static GameObject barberPrefab;
+        internal static GameObject clayPrefab, barberPrefab;
         internal static TerminalNode clayNode;
-        internal static EnemyType dummyType;
-        internal static EnemyType curveDummyType;
+        internal static EnemyType dummyType, curveDummyType;
         internal static Dictionary<string, EnemyType> allEnemiesList = [];
-        internal static ConfigEntry<bool> configSpawnOverride;
-        internal static ConfigEntry<bool> configInfestations;
-        internal static ConfigEntry<bool> configCurve;
-        internal static ConfigEntry<float> configAmbience;
-        internal static ConfigEntry<float> configIridescence;
+        internal static ConfigEntry<bool> configSpawnOverride, configInfestations, configCurve;
+        internal static ConfigEntry<float> configAmbience, configIridescence;
         protected const string anchorPath = "MeshContainer";
         protected const string animPath = "MeshContainer/AnimContainer";
 
+        internal void initLethalConfig()
+        {
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configSpawnOverride, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configInfestations, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configCurve, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configAmbience, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configIridescence, false));
+
+
+            LethalConfig.LethalConfigManager.SkipAutoGen();
+        }
 
         void Awake()
         {
@@ -70,14 +70,7 @@ namespace ClaySurgeonMod
 
             if (Chainloader.PluginInfos.ContainsKey(LETHAL_CONFIG))
             {
-                LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(configSpawnOverride, false));
-                LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(configInfestations, false));
-                LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(configCurve, false));
-                LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(configAmbience, false));
-                LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(configIridescence, false));
-
-
-                LethalConfigManager.SkipAutoGen();
+               initLethalConfig();
             }
 
             //Credits to ButteryStancakes for asset loading code!
@@ -116,7 +109,7 @@ namespace ClaySurgeonMod
                 System.Random random2 = new System.Random(StartOfRound.Instance.randomMapSeed + 5781);
                 if ((num && random2.Next(0, 210) < 3) || random2.Next(0, 1000) < 15)
                 {
-                    if (___enemyRushIndex == -1 && configInfestations.Value)
+                    if (___enemyRushIndex == -1 && Plugin.configInfestations.Value)
                     {
                         for (int j = 0; j < __instance.currentLevel.Enemies.Count; j++)
                         {
@@ -148,7 +141,7 @@ namespace ClaySurgeonMod
                 ];
 
 
-                if (configSpawnOverride.Value)
+                if (Plugin.configSpawnOverride.Value)
                 {
                     foreach (List<SpawnableEnemyWithRarity> enemies in allEnemyLists)
                         foreach (SpawnableEnemyWithRarity spawnableEnemyWithRarity in enemies)
@@ -217,7 +210,7 @@ namespace ClaySurgeonMod
                 {
                     if (source.clip.name == "ClaySurgeonAmbience")
                     {
-                        source.volume = configAmbience.Value;
+                        source.volume = Plugin.configAmbience.Value;
                         return;
                     }
                 }
@@ -233,7 +226,7 @@ namespace ClaySurgeonMod
                 Material[] barberMats = __instance.skin.sharedMaterials;
                 foreach (Material barberMat in barberMats)
                     barberMat.SetFloat("_AlphaCutoff", (num - __instance.minDistance) / (__instance.maxDistance - __instance.minDistance));
-                __instance.skin.material.SetFloat("_IridescenceMask", configIridescence.Value);
+                __instance.skin.material.SetFloat("_IridescenceMask", Plugin.configIridescence.Value);
                 __instance.skin.sharedMaterials = barberMats;
             }
 
@@ -242,7 +235,7 @@ namespace ClaySurgeonMod
             [HarmonyPrefix]
             static bool DanceClockPreTick()
             {
-                if (configCurve.Value)
+                if (Plugin.configCurve.Value)
                 {
                     float currentInterval = Mathf.Clamp(curveDummyType.probabilityCurve.Evaluate((float)TimeOfDay.Instance.hour / TimeOfDay.Instance.numberOfHours), 1.25f, 2.75f);
                     foreach (ClaySurgeonAI barber in UnityEngine.Object.FindObjectsOfType<ClaySurgeonAI>())
