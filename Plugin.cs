@@ -15,16 +15,17 @@ using LethalConfig.ConfigItems.Options;
 using LethalConfig.ConfigItems;
 using static UnityEngine.UIElements.UIR.Implementation.UIRStylePainter;
 using BarberFixes;
+using BepInEx.Bootstrap;
 
 namespace ClaySurgeonMod
 {
     [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
-    [BepInDependency("ainavt.lc.lethalconfig")]
+    [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
     [BepInDependency("butterystancakes.lethalcompany.ventspawnfix")]
     [BepInDependency("butterystancakes.lethalcompany.barberfixes")]
     public class Plugin : BaseUnityPlugin
     {
-        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.1.0";
+        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.2.1", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
         internal static new ManualLogSource Logger;
         internal static GameObject clayPrefab;
         internal static GameObject barberPrefab;
@@ -67,14 +68,17 @@ namespace ClaySurgeonMod
                     new AcceptableValueRange<float>(0.0f, 1.0f)));
 
 
-            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(configSpawnOverride, false));
-            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(configInfestations, false));
-            LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(configCurve, false));
-            LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(configAmbience, false));
-            LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(configIridescence, false));
+            if (Chainloader.PluginInfos.ContainsKey(LETHAL_CONFIG))
+            {
+                LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(configSpawnOverride, false));
+                LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(configInfestations, false));
+                LethalConfigManager.AddConfigItem(new BoolCheckBoxConfigItem(configCurve, false));
+                LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(configAmbience, false));
+                LethalConfigManager.AddConfigItem(new FloatSliderConfigItem(configIridescence, false));
 
 
-            LethalConfigManager.SkipAutoGen();
+                LethalConfigManager.SkipAutoGen();
+            }
 
             //Credits to ButteryStancakes for asset loading code!
 
