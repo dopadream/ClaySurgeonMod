@@ -19,13 +19,13 @@ namespace ClaySurgeonMod
     [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.2.1", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
+        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.2.2", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
         internal static new ManualLogSource Logger;
         internal static GameObject clayPrefab, barberPrefab;
         internal static TerminalNode clayNode;
         internal static EnemyType dummyType, curveDummyType;
         internal static Dictionary<string, EnemyType> allEnemiesList = [];
-        internal static ConfigEntry<bool> configSpawnOverride, configInfestations, configCurve;
+        internal static ConfigEntry<bool> configSpawnOverride, configInfestations, configCurve, configKlayWorld;
         internal static ConfigEntry<float> configAmbience, configIridescence;
         protected const string anchorPath = "MeshContainer";
         protected const string animPath = "MeshContainer/AnimContainer";
@@ -37,7 +37,7 @@ namespace ClaySurgeonMod
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configCurve, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configAmbience, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configIridescence, false));
-
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configKlayWorld, false));
 
             LethalConfig.LethalConfigManager.SkipAutoGen();
         }
@@ -66,6 +66,9 @@ namespace ClaySurgeonMod
                 new ConfigDescription(
                     "Controls the iridescence of the Clay Surgeon's clay material.",
                     new AcceptableValueRange<float>(0.0f, 1.0f)));
+
+            configKlayWorld = Config.Bind("Fun", "Klay World", false,
+                new ConfigDescription("Guarantees clay infestations when possible. Clay infestations must be turned on!"));
 
 
             if (Chainloader.PluginInfos.ContainsKey(LETHAL_CONFIG))
@@ -107,7 +110,7 @@ namespace ClaySurgeonMod
                 DateTime dateTime = new DateTime(DateTime.Now.Year, 10, 31);
                 bool num = DateTime.Today == dateTime;
                 System.Random random2 = new System.Random(StartOfRound.Instance.randomMapSeed + 5781);
-                if ((num && random2.Next(0, 210) < 3) || random2.Next(0, 1000) < 15)
+                if ((num && random2.Next(0, 210) < 3) || random2.Next(0, 1000) < 15 || Plugin.configKlayWorld.Value)
                 {
                     if (___enemyRushIndex == -1 && Plugin.configInfestations.Value)
                     {
@@ -115,7 +118,7 @@ namespace ClaySurgeonMod
                         {
                             if (__instance.currentLevel.Enemies[j].enemyType.enemyName == "Clay Surgeon")
                             {
-                                if (__instance.currentLevel.Enemies[j].enemyType.MaxCount > 0)
+                                if (__instance.currentLevel.Enemies[j].enemyType.MaxCount > 1)
                                 {
                                     Logger.LogDebug("Clay infestation started!");
                                     ((Component)(object)__instance.indoorFog).gameObject.SetActive(random2.Next(0, 100) < 20);
