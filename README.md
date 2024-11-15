@@ -10,6 +10,8 @@ There's also a custom bestiary entry, be sure to check that out!
 
 This mod depends on BarberFixes/VentSpawnFix to apply the spawn settings without breaking.
 
+BarberMaterialTweaks is incompatible and will not load with this mod installed.
+
 <img title="Clay Surgeon" alt="A showcase of the Clay Surgeon model." src="https://i.imgur.com/K4iYz16.png" width="550">
 
 
