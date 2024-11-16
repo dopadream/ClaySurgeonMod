@@ -15,24 +15,28 @@ namespace ClaySurgeonMod
     [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
     [BepInDependency("butterystancakes.lethalcompany.ventspawnfix")]
     [BepInDependency("butterystancakes.lethalcompany.barberfixes")]
-    [BepInIncompatibility("dopadream.lethalcompany.barbermaterialtweaks")]
     [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.2.2", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
+        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.2.5" +
+            "", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
         internal static new ManualLogSource Logger;
         internal static GameObject clayPrefab, barberPrefab;
         internal static TerminalNode clayNode;
         internal static EnemyType dummyType, curveDummyType;
         internal static Dictionary<string, EnemyType> allEnemiesList = [];
         internal static ConfigEntry<bool> configSpawnOverride, configInfestations, configCurve, configKlayWorld;
-        internal static ConfigEntry<float> configAmbience, configIridescence;
+        internal static ConfigEntry<int> configMaxCount;
+        internal static ConfigEntry<float> configAmbience, configIridescence, configMinVisibility, configMaxVisibility;
         protected const string anchorPath = "MeshContainer";
         protected const string animPath = "MeshContainer/AnimContainer";
 
         internal void initLethalConfig()
         {
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configSpawnOverride, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntInputFieldConfigItem(configMaxCount, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configMinVisibility, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configMaxVisibility, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configInfestations, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configCurve, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configAmbience, false));
@@ -50,6 +54,19 @@ namespace ClaySurgeonMod
 
             configSpawnOverride = Config.Bind("General", "Override Spawn Settings", true,
                 new ConfigDescription("Overrides spawning logic of Clay Surgeons (Barbers). With this enabled, they will spawn in pairs and be more common. Disable if you want to customize their spawning yourself through plugins such as LethalQuantities."));
+
+            configMaxCount = Config.Bind("General", "Max Spawn Count", 6,
+                new ConfigDescription("Defines the max spawn count of Clay Surgeons. Override Spawn Settings must be turned on."));
+
+            configMinVisibility = Config.Bind("General", "Minimum Visibility Distance", 5f,
+                new ConfigDescription(
+                "Controls the distance at which the Clay Surgeon is fully visible.",
+                new AcceptableValueRange<float>(5.0f, 15.0f)));
+
+            configMaxVisibility = Config.Bind("General", "Maximum Visibility Distance", 7f,
+                new ConfigDescription(
+                "Controls the distance at which the Clay Surgeon is fully invisible.",
+                new AcceptableValueRange<float>(7.0f, 15.0f)));
 
             configInfestations = Config.Bind("General", "Clay Infestations", true,
                 new ConfigDescription("Adds a chance for Hoarding bug/Nutcracker infestations to be Clay Surgeon Infestations instead."));
@@ -159,7 +176,7 @@ namespace ClaySurgeonMod
                             else if (spawnableEnemyWithRarity.enemyType.enemyName == "Clay Surgeon")
                             {
                                 spawnableEnemyWithRarity.enemyType.spawnInGroupsOf = 2;
-                                spawnableEnemyWithRarity.enemyType.MaxCount = 8;
+                                spawnableEnemyWithRarity.enemyType.MaxCount = configMaxCount.Value;
                                 spawnableEnemyWithRarity.enemyType.probabilityCurve = dummyType.probabilityCurve;
                                 spawnableEnemyWithRarity.enemyType.numberSpawnedFalloff = dummyType.numberSpawnedFalloff;
                                 spawnableEnemyWithRarity.enemyType.useNumberSpawnedFalloff = true;
@@ -225,7 +242,8 @@ namespace ClaySurgeonMod
             static void ClaySurgeonAIPostSetVis(ClaySurgeonAI __instance)
             {
                 float num = Vector3.Distance(StartOfRound.Instance.audioListener.transform.position, __instance.transform.position + Vector3.up * 0.7f);
-
+                __instance.minDistance = configMinVisibility.Value;
+                __instance.maxDistance = configMaxVisibility.Value;
                 Material[] barberMats = __instance.skin.sharedMaterials;
                 foreach (Material barberMat in barberMats)
                     barberMat.SetFloat("_AlphaCutoff", (num - __instance.minDistance) / (__instance.maxDistance - __instance.minDistance));
