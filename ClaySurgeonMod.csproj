@@ -45,5 +45,8 @@
     <Reference Include="LethalConfig">
       <HintPath>C:\Users\Stephanie\AppData\Roaming\com.kesomannen.gale\lethal-company\profiles\surgeon test\BepInEx\plugins\AinaVT-LethalConfig\LethalConfig\LethalConfig.dll</HintPath>
     </Reference>
+    <Reference Include="EnemySkinRegistry">
+      <HintPath>C:\Users\Stephanie\AppData\Roaming\com.kesomannen.gale\lethal-company\profiles\surgeon test\BepInEx\plugins\AntlerShed-EnemySkinRegistry\EnemySkinRegistry\EnemySkinRegistry.dll</HintPath>
+    </Reference>
   </ItemGroup>
 </Project>

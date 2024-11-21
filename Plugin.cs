@@ -18,15 +18,15 @@ namespace ClaySurgeonMod
     [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.2.5" +
+        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.2.6" +
             "", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
         internal static new ManualLogSource Logger;
-        internal static GameObject clayPrefab, barberPrefab;
+        internal static GameObject clayPrefab;
         internal static TerminalNode clayNode;
         internal static EnemyType dummyType, curveDummyType;
         internal static Dictionary<string, EnemyType> allEnemiesList = [];
         internal static ConfigEntry<bool> configSpawnOverride, configInfestations, configCurve, configKlayWorld;
-        internal static ConfigEntry<int> configMaxCount;
+        internal static ConfigEntry<int> configMaxCount, configPowerLevel, configSpawnInGroupsOf;
         internal static ConfigEntry<float> configAmbience, configIridescence, configMinVisibility, configMaxVisibility;
         protected const string anchorPath = "MeshContainer";
         protected const string animPath = "MeshContainer/AnimContainer";
@@ -35,6 +35,8 @@ namespace ClaySurgeonMod
         {
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configSpawnOverride, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntInputFieldConfigItem(configMaxCount, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntInputFieldConfigItem(configSpawnInGroupsOf, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntInputFieldConfigItem(configPowerLevel, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configMinVisibility, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configMaxVisibility, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configInfestations, false));
@@ -58,12 +60,18 @@ namespace ClaySurgeonMod
             configMaxCount = Config.Bind("General", "Max Spawn Count", 6,
                 new ConfigDescription("Defines the max spawn count of Clay Surgeons. Override Spawn Settings must be turned on."));
 
+            configSpawnInGroupsOf = Config.Bind("General", "Spawn Group Count", 2,
+                new ConfigDescription("Defines how many Clay Surgeons spawn in one vent. Override Spawn Settings must be turned on."));
+
+            configPowerLevel = Config.Bind("General", "Power Level", 2,
+                new ConfigDescription("Defines the power level of Clay Surgeons. Override Spawn Settings must be turned on."));
+
             configMinVisibility = Config.Bind("General", "Minimum Visibility Distance", 5f,
                 new ConfigDescription(
                 "Controls the distance at which the Clay Surgeon is fully visible.",
                 new AcceptableValueRange<float>(5.0f, 15.0f)));
 
-            configMaxVisibility = Config.Bind("General", "Maximum Visibility Distance", 7f,
+            configMaxVisibility = Config.Bind("General", "Maximum Visibility Distance", 15f,
                 new ConfigDescription(
                 "Controls the distance at which the Clay Surgeon is fully invisible.",
                 new AcceptableValueRange<float>(7.0f, 15.0f)));
@@ -140,7 +148,7 @@ namespace ClaySurgeonMod
                                     Logger.LogDebug("Clay infestation started!");
                                     ((Component)(object)__instance.indoorFog).gameObject.SetActive(random2.Next(0, 100) < 20);
                                     ___enemyRushIndex = j;
-                                    __instance.currentMaxInsidePower = 30f;
+                                    __instance.currentMaxInsidePower = __instance.currentLevel.Enemies[j].enemyType.PowerLevel * __instance.currentLevel.Enemies[j].enemyType.MaxCount;
                                     break;
                                 }
                             }
@@ -175,17 +183,16 @@ namespace ClaySurgeonMod
                             }
                             else if (spawnableEnemyWithRarity.enemyType.enemyName == "Clay Surgeon")
                             {
-                                spawnableEnemyWithRarity.enemyType.spawnInGroupsOf = 2;
+                                spawnableEnemyWithRarity.enemyType.spawnInGroupsOf = configSpawnInGroupsOf.Value;
                                 spawnableEnemyWithRarity.enemyType.MaxCount = configMaxCount.Value;
+                                spawnableEnemyWithRarity.enemyType.PowerLevel = configPowerLevel.Value;
                                 spawnableEnemyWithRarity.enemyType.probabilityCurve = dummyType.probabilityCurve;
                                 spawnableEnemyWithRarity.enemyType.numberSpawnedFalloff = dummyType.numberSpawnedFalloff;
                                 spawnableEnemyWithRarity.enemyType.useNumberSpawnedFalloff = true;
-                                spawnableEnemyWithRarity.enemyType.numberSpawned = 0;
                                 Logger.LogDebug("Barber spawn settings overriden!");
                                 return;
                             }
                         }
-
                 }
             }
 
@@ -300,5 +307,42 @@ namespace ClaySurgeonMod
                 }
             }
         }
+
+/*        public abstract class BaseSkin : Skin
+        {
+
+            [SerializeField]
+            protected string label;
+            public string Label => label;
+            [SerializeField]
+            protected string id;
+            public string Id => id;
+            [SerializeField]
+            protected Texture2D icon;
+            public Texture2D Icon => icon;
+            public abstract string EnemyId { get; }
+            public abstract Skinner CreateSkinner();
+        }
+
+        public abstract class BaseNestSkin : BaseSkin, NestSkin
+        {
+            public string SkinId => id;
+
+            public abstract Skinner CreateNestSkinner();
+        }
+
+
+        public abstract class ClaySkinner : Skinner
+        {
+            public void Apply(GameObject enemy)
+            {
+                throw new NotImplementedException();
+            }
+
+            public void Remove(GameObject enemy)
+            {
+                throw new NotImplementedException();
+            }
+        }*/
     }
 }
