@@ -9,6 +9,7 @@ using UnityEngine;
 using BepInEx.Configuration;
 using BarberFixes;
 using BepInEx.Bootstrap;
+using System.Linq;
 
 namespace ClaySurgeonMod
 {
@@ -18,8 +19,7 @@ namespace ClaySurgeonMod
     [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.2.6" +
-            "", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
+        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.0", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
         internal static new ManualLogSource Logger;
         internal static GameObject clayPrefab;
         internal static TerminalNode clayNode;
@@ -28,6 +28,11 @@ namespace ClaySurgeonMod
         internal static ConfigEntry<bool> configSpawnOverride, configInfestations, configCurve, configKlayWorld;
         internal static ConfigEntry<int> configMaxCount, configPowerLevel, configSpawnInGroupsOf;
         internal static ConfigEntry<float> configAmbience, configIridescence, configMinVisibility, configMaxVisibility;
+        internal static ConfigEntry<int> configSkin0, configSkin1, configSkin2, configSkin3, configSkin4, configSkin5, configSkin6, configSkin7, configSkin8;
+        internal static System.Random clayRandom;
+        static Dictionary<Texture, IntWithRarity[]> clayWeightList = [];
+        internal static Texture claySkinPurple, claySkinRed, claySkinGreen, claySkinYellow, claySkinOrange, claySkinWhite, claySkinBlack, claySkinPink, claySkinTeal;
+
         protected const string anchorPath = "MeshContainer";
         protected const string animPath = "MeshContainer/AnimContainer";
 
@@ -43,6 +48,18 @@ namespace ClaySurgeonMod
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configCurve, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configAmbience, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configIridescence, false));
+
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin0, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin1, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin2, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin3, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin4, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin5, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin6, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin7, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin8, false));
+
+
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configKlayWorld, false));
 
             LethalConfig.LethalConfigManager.SkipAutoGen();
@@ -92,13 +109,59 @@ namespace ClaySurgeonMod
                     "Controls the iridescence of the Clay Surgeon's clay material.",
                     new AcceptableValueRange<float>(0.0f, 1.0f)));
 
+            configSkin0 = Config.Bind("Skins", "Default", 300,
+                new ConfigDescription(
+                    "Controls the rarity of this skin.",
+                    new AcceptableValueRange<float>(0, 300)));
+
+            configSkin1 = Config.Bind("Skins", "Red Delicious", 300,
+                new ConfigDescription(
+                    "Controls the rarity of this skin.",
+                    new AcceptableValueRange<float>(0, 300)));
+
+            configSkin1 = Config.Bind("Skins", "Eraser Pink", 0,
+                new ConfigDescription(
+                    "Controls the rarity of this skin.",
+                    new AcceptableValueRange<float>(0, 300)));
+
+            configSkin1 = Config.Bind("Skins", "Snipsy Blue", 0,
+                new ConfigDescription(
+                    "Controls the rarity of this skin.",
+                    new AcceptableValueRange<float>(0, 300)));
+
+            configSkin1 = Config.Bind("Skins", "Slimy Green", 300,
+                new ConfigDescription(
+                    "Controls the rarity of this skin.",
+                    new AcceptableValueRange<float>(0, 300)));
+
+            configSkin1 = Config.Bind("Skins", "Taffy Yellow", 0,
+                new ConfigDescription(
+                    "Controls the rarity of this skin.",
+                    new AcceptableValueRange<float>(0, 300)));
+
+            configSkin1 = Config.Bind("Skins", "Tan Orange", 0,
+                new ConfigDescription(
+                    "Controls the rarity of this skin.",
+                    new AcceptableValueRange<float>(0, 300)));
+
+            configSkin1 = Config.Bind("Skins", "Isolated White", 0,
+                new ConfigDescription(
+                    "Controls the rarity of this skin.",
+                    new AcceptableValueRange<float>(0, 300)));
+
+            configSkin1 = Config.Bind("Skins", "Ink Black", 0,
+                new ConfigDescription(
+                    "Controls the rarity of this skin.",
+                    new AcceptableValueRange<float>(0, 300)));
+
             configKlayWorld = Config.Bind("Fun", "Klay World", false,
                 new ConfigDescription("Guarantees clay infestations when possible. Clay infestations must be turned on!"));
 
 
+
             if (Chainloader.PluginInfos.ContainsKey(LETHAL_CONFIG))
             {
-               initLethalConfig();
+                initLethalConfig();
             }
 
             //Credits to ButteryStancakes for asset loading code!
@@ -110,6 +173,16 @@ namespace ClaySurgeonMod
                 clayNode = claysurgeonbundle.LoadAsset("ClaySurgeonFile", typeof(TerminalNode)) as TerminalNode;
                 dummyType = claysurgeonbundle.LoadAsset("DummyEnemyType", typeof(EnemyType)) as EnemyType;
                 curveDummyType = claysurgeonbundle.LoadAsset("CurveDummyType", typeof(EnemyType)) as EnemyType;
+
+                claySkinPurple = claysurgeonbundle.LoadAsset("cs_default", typeof(Texture)) as Texture;
+                claySkinRed = claysurgeonbundle.LoadAsset("cs_red_delicious", typeof(Texture)) as Texture;
+                claySkinPink = claysurgeonbundle.LoadAsset("cs_eraser_pink", typeof(Texture)) as Texture;
+                claySkinTeal = claysurgeonbundle.LoadAsset("cs_snipsy_blue", typeof(Texture)) as Texture;
+                claySkinGreen = claysurgeonbundle.LoadAsset("cs_slimy_green", typeof(Texture)) as Texture;
+                claySkinYellow = claysurgeonbundle.LoadAsset("cs_taffy_yellow", typeof(Texture)) as Texture;
+                claySkinOrange = claysurgeonbundle.LoadAsset("cs_tan_orange", typeof(Texture)) as Texture;
+                claySkinWhite = claysurgeonbundle.LoadAsset("cs_isolated_white", typeof(Texture)) as Texture;
+                claySkinBlack = claysurgeonbundle.LoadAsset("cs_shadow_black", typeof(Texture)) as Texture;
 
             }
             catch
@@ -155,6 +228,64 @@ namespace ClaySurgeonMod
                         }
                     }
                 }
+                clayRandom = new System.Random(StartOfRound.Instance.randomMapSeed);
+            }
+
+
+            static Texture getRandomSkin(System.Random random)
+            {
+
+                clayWeightList.Clear();
+
+
+
+
+                int percent = random.Next(0, 300);
+
+
+                var configValues = new[]
+                {
+                    configSkin0.Value,
+                    configSkin1.Value,
+                    configSkin2.Value,
+                    configSkin3.Value,
+                    configSkin4.Value,
+                    configSkin5.Value,
+                    configSkin6.Value,
+                    configSkin7.Value,
+                    configSkin8.Value
+                };
+
+                var claySkins = new[]
+                {
+                    claySkinPurple,
+                    claySkinRed,
+                    claySkinPink,
+                    claySkinTeal,
+                    claySkinGreen,
+                    claySkinYellow,
+                    claySkinOrange,
+                    claySkinWhite,
+                    claySkinBlack
+                };
+
+                List<int> matchingIndices = new List<int>();
+
+                for (int i = 0; i < configValues.Length; i++)
+                {
+                    if (configValues[i] != 0 && percent <= configValues[i])
+                    {
+                        matchingIndices.Add(i);
+                    }
+                }
+
+                if (matchingIndices.Count > 0)
+                {
+                    return claySkins[RoundManager.Instance.GetRandomWeightedIndex(configValues.ToArray(), random)];
+                }
+
+                // Default return value if no condition is met
+                return claySkinPurple;
             }
 
             [HarmonyPatch(typeof(QuickMenuManager), "Start")]
@@ -209,6 +340,8 @@ namespace ClaySurgeonMod
                 __instance.gameObject.GetComponentInChildren<ScanNodeProperties>().headerText = "Clay Surgeon";
                 __instance.skinnedMeshRenderers = clayClone.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
                 __instance.meshRenderers = clayClone.gameObject.GetComponentsInChildren<MeshRenderer>();
+                __instance.skin.sharedMaterials[0].mainTexture = getRandomSkin(clayRandom);
+
                 clayClone.GetComponentInChildren<EnemyAnimationEvent>().mainScript = __instance.gameObject.GetComponentInChildren<EnemyAnimationEvent>().mainScript;
 
 
@@ -221,7 +354,7 @@ namespace ClaySurgeonMod
             {
                 Material[] barberMats = new Material[__instance.skin.sharedMaterials.Length];
                 for (int i = 0; i < barberMats.Length; i++)
-                    barberMats[i] = __instance.skin.materials[i];
+                    barberMats[i] = Instantiate(__instance.skin.materials[i]);
                 __instance.skin.sharedMaterials = barberMats;
 
             }
@@ -308,41 +441,41 @@ namespace ClaySurgeonMod
             }
         }
 
-/*        public abstract class BaseSkin : Skin
-        {
+        /*        public abstract class BaseSkin : Skin
+                {
 
-            [SerializeField]
-            protected string label;
-            public string Label => label;
-            [SerializeField]
-            protected string id;
-            public string Id => id;
-            [SerializeField]
-            protected Texture2D icon;
-            public Texture2D Icon => icon;
-            public abstract string EnemyId { get; }
-            public abstract Skinner CreateSkinner();
-        }
+                    [SerializeField]
+                    protected string label;
+                    public string Label => label;
+                    [SerializeField]
+                    protected string id;
+                    public string Id => id;
+                    [SerializeField]
+                    protected Texture2D icon;
+                    public Texture2D Icon => icon;
+                    public abstract string EnemyId { get; }
+                    public abstract Skinner CreateSkinner();
+                }
 
-        public abstract class BaseNestSkin : BaseSkin, NestSkin
-        {
-            public string SkinId => id;
+                public abstract class BaseNestSkin : BaseSkin, NestSkin
+                {
+                    public string SkinId => id;
 
-            public abstract Skinner CreateNestSkinner();
-        }
+                    public abstract Skinner CreateNestSkinner();
+                }
 
 
-        public abstract class ClaySkinner : Skinner
-        {
-            public void Apply(GameObject enemy)
-            {
-                throw new NotImplementedException();
-            }
+                public abstract class ClaySkinner : Skinner
+                {
+                    public void Apply(GameObject enemy)
+                    {
+                        throw new NotImplementedException();
+                    }
 
-            public void Remove(GameObject enemy)
-            {
-                throw new NotImplementedException();
-            }
-        }*/
+                    public void Remove(GameObject enemy)
+                    {
+                        throw new NotImplementedException();
+                    }
+                }*/
     }
 }
