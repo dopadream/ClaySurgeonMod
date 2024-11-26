@@ -19,7 +19,7 @@ namespace ClaySurgeonMod
     [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.0", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
+        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.2", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
         internal static new ManualLogSource Logger;
         internal static GameObject clayPrefab;
         internal static TerminalNode clayNode;
@@ -28,7 +28,7 @@ namespace ClaySurgeonMod
         internal static ConfigEntry<bool> configSpawnOverride, configInfestations, configCurve, configKlayWorld;
         internal static ConfigEntry<int> configMaxCount, configPowerLevel, configSpawnInGroupsOf;
         internal static ConfigEntry<float> configAmbience, configIridescence, configMinVisibility, configMaxVisibility;
-        internal static ConfigEntry<int> configSkin0, configSkin1, configSkin2, configSkin3, configSkin4, configSkin5, configSkin6, configSkin7, configSkin8;
+        internal static ConfigEntry<float> configSkin0, configSkin1, configSkin2, configSkin3, configSkin4, configSkin5, configSkin6, configSkin7, configSkin8;
         internal static System.Random clayRandom;
         static Dictionary<Texture, IntWithRarity[]> clayWeightList = [];
         internal static Texture claySkinPurple, claySkinRed, claySkinGreen, claySkinYellow, claySkinOrange, claySkinWhite, claySkinBlack, claySkinPink, claySkinTeal;
@@ -49,15 +49,15 @@ namespace ClaySurgeonMod
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configAmbience, false));
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configIridescence, false));
 
-            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin0, false));
-            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin1, false));
-            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin2, false));
-            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin3, false));
-            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin4, false));
-            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin5, false));
-            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin6, false));
-            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin7, false));
-            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.IntSliderConfigItem(configSkin8, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configSkin0, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configSkin1, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configSkin2, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configSkin3, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configSkin4, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configSkin5, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configSkin6, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configSkin7, false));
+            LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.FloatSliderConfigItem(configSkin8, false));
 
 
             LethalConfig.LethalConfigManager.AddConfigItem(new LethalConfig.ConfigItems.BoolCheckBoxConfigItem(configKlayWorld, false));
@@ -109,50 +109,50 @@ namespace ClaySurgeonMod
                     "Controls the iridescence of the Clay Surgeon's clay material.",
                     new AcceptableValueRange<float>(0.0f, 1.0f)));
 
-            configSkin0 = Config.Bind("Skins", "Default", 300,
+            configSkin0 = Config.Bind("Skins", "Default", 300.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
-                    new AcceptableValueRange<float>(0, 300)));
+                    new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin1 = Config.Bind("Skins", "Red Delicious", 300,
+            configSkin1 = Config.Bind("Skins", "Red Delicious", 300.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
-                    new AcceptableValueRange<float>(0, 300)));
+                    new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin1 = Config.Bind("Skins", "Eraser Pink", 0,
+            configSkin2 = Config.Bind("Skins", "Eraser Pink", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
-                    new AcceptableValueRange<float>(0, 300)));
+                    new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin1 = Config.Bind("Skins", "Snipsy Blue", 0,
+            configSkin3 = Config.Bind("Skins", "Snipsy Blue", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
-                    new AcceptableValueRange<float>(0, 300)));
+                    new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin1 = Config.Bind("Skins", "Slimy Green", 300,
+            configSkin4 = Config.Bind("Skins", "Slimy Green", 300.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
-                    new AcceptableValueRange<float>(0, 300)));
+                    new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin1 = Config.Bind("Skins", "Taffy Yellow", 0,
+            configSkin5 = Config.Bind("Skins", "Taffy Yellow", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
-                    new AcceptableValueRange<float>(0, 300)));
+                    new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin1 = Config.Bind("Skins", "Tan Orange", 0,
+            configSkin6 = Config.Bind("Skins", "Tan Orange", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
-                    new AcceptableValueRange<float>(0, 300)));
+                    new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin1 = Config.Bind("Skins", "Isolated White", 0,
+            configSkin7 = Config.Bind("Skins", "Isolated White", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
-                    new AcceptableValueRange<float>(0, 300)));
+                    new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin1 = Config.Bind("Skins", "Ink Black", 0,
+            configSkin8 = Config.Bind("Skins", "Ink Black", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
-                    new AcceptableValueRange<float>(0, 300)));
+                    new AcceptableValueRange<float>(0.0f, 300.0f)));
 
             configKlayWorld = Config.Bind("Fun", "Klay World", false,
                 new ConfigDescription("Guarantees clay infestations when possible. Clay infestations must be turned on!"));
@@ -245,15 +245,15 @@ namespace ClaySurgeonMod
 
                 var configValues = new[]
                 {
-                    configSkin0.Value,
-                    configSkin1.Value,
-                    configSkin2.Value,
-                    configSkin3.Value,
-                    configSkin4.Value,
-                    configSkin5.Value,
-                    configSkin6.Value,
-                    configSkin7.Value,
-                    configSkin8.Value
+                    (int)configSkin0.Value,
+                    (int)configSkin1.Value,
+                    (int)configSkin2.Value,
+                    (int)configSkin3.Value,
+                    (int)configSkin4.Value,
+                    (int)configSkin5.Value,
+                    (int)configSkin6.Value,
+                    (int)configSkin7.Value,
+                    (int)configSkin8.Value
                 };
 
                 var claySkins = new[]
