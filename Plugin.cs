@@ -21,7 +21,7 @@ namespace ClaySurgeonMod
     [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.3", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
+        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.4", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
         internal static new ManualLogSource Logger;
         internal static GameObject clayPrefab;
         internal static TerminalNode clayNode;
@@ -35,9 +35,6 @@ namespace ClaySurgeonMod
         static Dictionary<Texture, IntWithRarity[]> clayWeightList = [];
         internal static Texture claySkinPurple, claySkinRed, claySkinGreen, claySkinYellow, claySkinOrange, claySkinWhite, claySkinBlack, claySkinPink, claySkinTeal, claySkinCyan, claySkinMagenta;
         internal static AnimationCurve intervalCurve;
-        internal static AudioSource cachedAudioSource;
-        internal static Volume cachedVolume;
-        internal static LensDistortion cachedDistortion;
         protected const string anchorPath = "MeshContainer";
         protected const string animPath = "MeshContainer/AnimContainer";
 
@@ -377,7 +374,6 @@ namespace ClaySurgeonMod
                 }
             }
 
-
             [HarmonyPatch(typeof(ClaySurgeonAI), "Awake")]
             [HarmonyPostfix]
 
@@ -393,8 +389,6 @@ namespace ClaySurgeonMod
                 __instance.skin.sharedMaterials[0].mainTexture = getRandomSkin(clayRandom);
 
                 clayClone.GetComponentInChildren<EnemyAnimationEvent>().mainScript = __instance.gameObject.GetComponentInChildren<EnemyAnimationEvent>().mainScript;
-
-
             }
 
             [HarmonyPatch(typeof(ClaySurgeonAI), "Start")]
@@ -406,12 +400,13 @@ namespace ClaySurgeonMod
                 for (int i = 0; i < barberMats.Length; i++)
                     barberMats[i] = Instantiate(__instance.skin.materials[i]);
                 __instance.skin.sharedMaterials = barberMats;
+
                 AudioSource[] sources = __instance.gameObject.GetComponentsInChildren<AudioSource>();
                 foreach (AudioSource source in sources)
                 {
                     if (source.clip.name == "csambience")
                     {
-                        cachedAudioSource = source;
+                        source.volume = configAmbience.Value;
                         break;
                     }
                 }
@@ -419,27 +414,13 @@ namespace ClaySurgeonMod
                 if (volume == null) throw new System.NullReferenceException(nameof(UnityEngine.Rendering.VolumeProfile));
                 else
                 {
-                    cachedVolume = volume;
-
+                    volume.weight = configScreenEffects.Value;
                 }
                 LensDistortion distortion;
-                if (cachedVolume.profile.TryGet<LensDistortion>(out distortion))
+                if (volume.profile.TryGet<LensDistortion>(out distortion))
                 {
-                    cachedDistortion = distortion;
+                    distortion.intensity.value = configScreenDistortion.Value;
                 }
-            }
-
-            [HarmonyPatch(typeof(ClaySurgeonAI), "Update")]
-            [HarmonyPostfix]
-
-            static void ClaySurgeonAIPostUpdate(ClaySurgeonAI __instance)
-            {
-                //Logger.LogDebug("Speed: " + __instance.currentInterval);
-
-                cachedAudioSource.volume = configAmbience.Value;
-                cachedVolume.weight = configScreenEffects.Value;
-                cachedDistortion.intensity.value = configScreenDistortion.Value;
-
             }
 
             [HarmonyPatch(typeof(ClaySurgeonAI), "SetVisibility")]
