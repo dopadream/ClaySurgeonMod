@@ -21,7 +21,7 @@ namespace ClaySurgeonMod
     [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.4", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
+        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.6", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
         internal static new ManualLogSource Logger;
         internal static GameObject clayPrefab;
         internal static TerminalNode clayNode;
@@ -387,6 +387,7 @@ namespace ClaySurgeonMod
                 __instance.skinnedMeshRenderers = clayClone.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
                 __instance.meshRenderers = clayClone.gameObject.GetComponentsInChildren<MeshRenderer>();
                 __instance.skin.sharedMaterials[0].mainTexture = getRandomSkin(clayRandom);
+                __instance.skin.material.SetFloat("_IridescenceMask", Plugin.configIridescence.Value);
 
                 clayClone.GetComponentInChildren<EnemyAnimationEvent>().mainScript = __instance.gameObject.GetComponentInChildren<EnemyAnimationEvent>().mainScript;
             }
@@ -433,9 +434,7 @@ namespace ClaySurgeonMod
                 __instance.maxDistance = configMaxVisibility.Value;
                 Material[] barberMats = __instance.skin.sharedMaterials;
                 foreach (Material barberMat in barberMats)
-                    barberMat.SetFloat("_AlphaCutoff", (num - __instance.minDistance) / (__instance.maxDistance - __instance.minDistance));
-                __instance.skin.material.SetFloat("_IridescenceMask", Plugin.configIridescence.Value);
-                __instance.skin.sharedMaterials = barberMats;
+                    barberMat.SetFloat("_AlphaCutoff", (num - __instance.minDistance) / (__instance.maxDistance - __instance.minDistance));     
             }
 
 

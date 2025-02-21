@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>ClaySurgeonMod</AssemblyName>
     <Description>A different take on the Barber</Description>
-    <Version>1.3.4</Version>
+    <Version>1.3.6</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
