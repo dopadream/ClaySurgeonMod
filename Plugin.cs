@@ -12,19 +12,16 @@ using BepInEx.Bootstrap;
 using System.Linq;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
-using LobbyCompatibility.Attributes;
-using LobbyCompatibility.Enums;
 
 namespace ClaySurgeonMod
 {
     [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
     [BepInDependency("butterystancakes.lethalcompany.ventspawnfix")]
     [BepInDependency("butterystancakes.lethalcompany.barberfixes")]
-    [LobbyCompatibility(CompatibilityLevel.ClientOnly, VersionStrictness.Patch)]
     [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.7", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
+        internal const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.8", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
         internal static new ManualLogSource Logger;
         internal static GameObject clayPrefab;
         internal static TerminalNode clayNode;
