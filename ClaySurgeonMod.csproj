@@ -4,7 +4,7 @@
     <TargetFramework>netstandard2.1</TargetFramework>
     <AssemblyName>ClaySurgeonMod</AssemblyName>
     <Description>A different take on the Barber</Description>
-    <Version>1.3.6</Version>
+    <Version>1.3.7</Version>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <LangVersion>latest</LangVersion>
     <RestoreAdditionalProjectSources>
@@ -55,5 +55,8 @@
     <Reference Include="ExperimentalEnemyInteractions" Publicize="true">
       <HintPath>C:\Users\Stephanie\AppData\Roaming\com.kesomannen.gale\lethal-company\profiles\surgeon test\BepInEx\plugins\Fandovec03-ExperimentalEnemyInteractions\fandovec03.ExperimentalEnemyInteractions.dll</HintPath>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="TeamBMX.LobbyCompatibility" Version="1.*" PrivateAssets="all" />
   </ItemGroup>
 </Project>
