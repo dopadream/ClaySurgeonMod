@@ -19,9 +19,10 @@ namespace ClaySurgeonMod
     [BepInDependency("butterystancakes.lethalcompany.ventspawnfix")]
     [BepInDependency("butterystancakes.lethalcompany.barberfixes")]
     [BepInDependency(LETHAL_CONFIG, BepInDependency.DependencyFlags.SoftDependency)]
+    [BepInDependency(LOBBY_COMPATIBILITY, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        internal const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.8", LETHAL_CONFIG = "ainavt.lc.lethalconfig";
+        internal const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.9", LETHAL_CONFIG = "ainavt.lc.lethalconfig", LOBBY_COMPATIBILITY = "BMX.LobbyCompatibility";
         internal static new ManualLogSource Logger;
         internal static GameObject clayPrefab;
         internal static TerminalNode clayNode;
@@ -72,6 +73,12 @@ namespace ClaySurgeonMod
         void Awake()
         {
             Logger = base.Logger;
+
+            if (Chainloader.PluginInfos.ContainsKey(LOBBY_COMPATIBILITY))
+            {
+                Plugin.Logger.LogInfo("CROSS-COMPATIBILITY - Lobby Compatibility detected");
+                LobbyCompatibility.Init();
+            }
 
             intervalCurve = new(
                         new(0f, 2.75f),
