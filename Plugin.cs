@@ -1,19 +1,20 @@
-﻿using BepInEx;
+﻿using BarberFixes;
+using BepInEx;
+using BepInEx.Bootstrap;
+using BepInEx.Configuration;
 using BepInEx.Logging;
 using HarmonyLib;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using UnityEngine;
-using BepInEx.Configuration;
-using BarberFixes;
-using BepInEx.Bootstrap;
-using System.Linq;
 using UnityEngine.Rendering;
 using UnityEngine.Rendering.HighDefinition;
+using static UnityEngine.Rendering.DebugUI;
 
-namespace ClaySurgeonMod
+namespace ClaySurgeonOverhaul
 {
     [BepInPlugin(PLUGIN_GUID, PLUGIN_NAME, PLUGIN_VERSION)]
     [BepInDependency("butterystancakes.lethalcompany.ventspawnfix")]
@@ -22,9 +23,13 @@ namespace ClaySurgeonMod
     [BepInDependency(LOBBY_COMPATIBILITY, BepInDependency.DependencyFlags.SoftDependency)]
     public class Plugin : BaseUnityPlugin
     {
-        internal const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonMod", PLUGIN_NAME = "Clay Surgeon", PLUGIN_VERSION = "1.3.9", LETHAL_CONFIG = "ainavt.lc.lethalconfig", LOBBY_COMPATIBILITY = "BMX.LobbyCompatibility";
+        static ConfigFile configFile;
+
+        internal const string PLUGIN_GUID = "dopadream.lethalcompany.ClaySurgeonOverhaul", PLUGIN_NAME = "Clay Surgeon Overhaul", PLUGIN_VERSION = "1.4.0", LETHAL_CONFIG = "ainavt.lc.lethalconfig", LOBBY_COMPATIBILITY = "BMX.LobbyCompatibility";
         internal static new ManualLogSource Logger;
         internal static GameObject clayPrefab;
+        internal static GameObject sleepyFilterPrefab;
+        internal static AudioClip snipClip;
         internal static TerminalNode clayNode;
         internal static EnemyType dummyType;
         internal static Dictionary<string, EnemyType> allEnemiesList = [];
@@ -38,6 +43,8 @@ namespace ClaySurgeonMod
         internal static AnimationCurve intervalCurve;
         protected const string anchorPath = "MeshContainer";
         protected const string animPath = "MeshContainer/AnimContainer";
+        protected const string renderPath = "Systems/Rendering";
+
 
         internal void initLethalConfig()
         {
@@ -74,126 +81,127 @@ namespace ClaySurgeonMod
         {
             Logger = base.Logger;
 
-            if (Chainloader.PluginInfos.ContainsKey(LOBBY_COMPATIBILITY))
-            {
-                Plugin.Logger.LogInfo("CROSS-COMPATIBILITY - Lobby Compatibility detected");
-                LobbyCompatibility.Init();
-            }
+            configFile = Config;
 
             intervalCurve = new(
                         new(0f, 2.75f),
-                        new(0.12f, 2.4f),
-                        new(0.24f, 2.12f),
-                        new(0.42f, 1.76f),
-                        new(0.58f, 1.52f),
-                        new(0.72f, 1.37f),
-                        new(0.87f, 1.27f),
-                        new(1f, 1.25f));
+                        new(0.05f, 2.375f),
+                        new(0.1f, 2.05f),
+                        new(0.15f, 1.8f),
+                        new(0.2f, 1.59f),
+                        new(0.25f, 1.41f),
+                        new(0.3f, 1.27f),
+                        new(0.35f, 1.165f),
+                        new(0.4f, 1.1f),
+                        new(0.45f, 1.05f),
+                        new(0.5f, 1.02f),
+                        new(0.6f, 1f)
+                        );
 
-            configSpawnOverride = Config.Bind("General", "Override Spawn Settings", true,
+            configSpawnOverride = configFile.Bind("General", "Override Spawn Settings", true,
                 new ConfigDescription("Overrides spawning logic of Clay Surgeons (Barbers). With this enabled, they will spawn in pairs and be more common. Disable if you want to customize their spawning yourself through plugins such as LethalQuantities."));
 
-            configMaxCount = Config.Bind("General", "Max Spawn Count", 6,
+            configMaxCount = configFile.Bind("General", "Max Spawn Count", 6,
                 new ConfigDescription("Defines the max spawn count of Clay Surgeons. Override Spawn Settings must be turned on."));
 
-            configSpawnInGroupsOf = Config.Bind("General", "Spawn Group Count", 2,
+            configSpawnInGroupsOf = configFile.Bind("General", "Spawn Group Count", 2,
                 new ConfigDescription("Defines how many Clay Surgeons spawn in one vent. Override Spawn Settings must be turned on."));
 
-            configPowerLevel = Config.Bind("General", "Power Level", 2,
+            configPowerLevel = configFile.Bind("General", "Power Level", 2,
                 new ConfigDescription("Defines the power level of Clay Surgeons. Override Spawn Settings must be turned on."));
 
-            configMinVisibility = Config.Bind("General", "Minimum Visibility Distance", 5f,
+            configMinVisibility = configFile.Bind("General", "Minimum Visibility Distance", 5f,
                 new ConfigDescription(
                 "Controls the distance at which the Clay Surgeon is fully visible.",
                 new AcceptableValueRange<float>(5.0f, 15.0f)));
 
-            configMaxVisibility = Config.Bind("General", "Maximum Visibility Distance", 15f,
+            configMaxVisibility = configFile.Bind("General", "Maximum Visibility Distance", 15f,
                 new ConfigDescription(
                 "Controls the distance at which the Clay Surgeon is fully invisible.",
                 new AcceptableValueRange<float>(7.0f, 15.0f)));
 
-            configInfestations = Config.Bind("General", "Clay Infestations", true,
+            configInfestations = configFile .Bind("General", "Clay Infestations", true,
                 new ConfigDescription("Adds a chance for Hoarding bug/Nutcracker infestations to be Clay Surgeon Infestations instead."));
 
-            configCurve = Config.Bind("General", "Curved Acceleration", true,
+            configCurve =   configFile.Bind("General", "Curved Acceleration", true,
                 new ConfigDescription("Makes the Clay Surgeon accelerate at a curve rather than a flat rate per hour."));
 
-            configAmbience = Config.Bind("Aesthetics", "Proximity Ambience Volume", 0.35f,
+            configAmbience =    configFile.Bind("Aesthetics", "Proximity Ambience Volume", 0.35f,
                 new ConfigDescription(
                     "Controls the volume of the Clay Surgeon's proximity ambience.",
                     new AcceptableValueRange<float>(0.0f, 1.0f)));
 
-            configScreenEffects = Config.Bind("Aesthetics", "Screen Effect Intensity", 0.5f,
+            configScreenEffects = configFile.Bind("Aesthetics", "Screen Effect Intensity", 0.5f,
                 new ConfigDescription(
                 "Controls the intensity of the \"sleepiness\" filter when in proximity with a Clay Surgeon.",
                 new AcceptableValueRange<float>(0.0f, 1.0f)));
 
-            configScreenDistortion = Config.Bind("Aesthetics", "Screen Distortion Intensity", -1.0f,
+            configScreenDistortion = configFile.Bind("Aesthetics", "Screen Distortion Intensity", -1.0f,
                 new ConfigDescription(
                 "Controls the intensity of the \"sleepiness\" filter's lens distortion when in proximity with a Clay Surgeon.",
                 new AcceptableValueRange<float>(-1.0f, 1.0f)));
 
-            configIridescence = Config.Bind("Aesthetics", "Iridescence", 0.25f,
+            configIridescence = configFile.Bind("Aesthetics", "Iridescence", 0.25f,
                 new ConfigDescription(
                     "Controls the iridescence of the Clay Surgeon's clay material.",
                     new AcceptableValueRange<float>(0.0f, 1.0f)));
 
-            configSkin0 = Config.Bind("Skins", "Default", 300.0f,
+            configSkin0 = configFile.Bind("Skins", "Default", 300.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
                     new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin1 = Config.Bind("Skins", "Red Delicious", 300.0f,
+            configSkin1 = configFile.Bind("Skins", "Red Delicious", 300.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
                     new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin2 = Config.Bind("Skins", "Eraser Pink", 0.0f,
+            configSkin2 = configFile.Bind("Skins", "Eraser Pink", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
                     new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin3 = Config.Bind("Skins", "Snipsy Blue", 0.0f,
+            configSkin3 = configFile.Bind("Skins", "Snipsy Blue", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
                     new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin4 = Config.Bind("Skins", "Slimy Green", 300.0f,
+            configSkin4 = configFile.Bind("Skins", "Slimy Green", 300.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
                     new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin5 = Config.Bind("Skins", "Taffy Yellow", 0.0f,
+            configSkin5 = configFile.Bind("Skins", "Taffy Yellow", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
                     new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin6 = Config.Bind("Skins", "Tan Orange", 0.0f,
+            configSkin6 = configFile.Bind("Skins", "Tan Orange", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
                     new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin7 = Config.Bind("Skins", "Cheery Cyan", 0.0f,
+            configSkin7 = configFile.Bind("Skins", "Cheery Cyan", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
                     new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin8 = Config.Bind("Skins", "Merry Magenta", 0.0f,
+            configSkin8 = configFile.Bind("Skins", "Merry Magenta", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
                     new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin9 = Config.Bind("Skins", "Isolated White", 0.0f,
+            configSkin9 = configFile.Bind("Skins", "Isolated White", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
                     new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configSkin10 = Config.Bind("Skins", "Ink Black", 0.0f,
+            configSkin10 = configFile.Bind("Skins", "Ink Black", 0.0f,
                 new ConfigDescription(
                     "Controls the rarity of this skin.",
                     new AcceptableValueRange<float>(0.0f, 300.0f)));
 
-            configKlayWorld = Config.Bind("Fun", "Klay World", false,
+            configKlayWorld = configFile.Bind("Fun", "Klay World", false,
                 new ConfigDescription("Guarantees clay infestations when possible. Clay infestations must be turned on!"));
 
 
@@ -207,10 +215,12 @@ namespace ClaySurgeonMod
 
             try
             {
-                AssetBundle claysurgeonbundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "claysurgeonmod"));
+                AssetBundle claysurgeonbundle = AssetBundle.LoadFromFile(Path.Combine(Path.GetDirectoryName(Assembly.GetExecutingAssembly().Location), "claysurgeonoverhaul"));
                 clayPrefab = claysurgeonbundle.LoadAsset("ClaySurgeonNew", typeof(GameObject)) as GameObject;
+                sleepyFilterPrefab = claysurgeonbundle.LoadAsset("SleepyFilter", typeof(GameObject)) as GameObject;
                 clayNode = claysurgeonbundle.LoadAsset("ClaySurgeonFile", typeof(TerminalNode)) as TerminalNode;
                 dummyType = claysurgeonbundle.LoadAsset("DummyEnemyType", typeof(EnemyType)) as EnemyType;
+                snipClip = claysurgeonbundle.LoadAsset<AudioClip>("snip_flesh");
 
                 claySkinPurple = claysurgeonbundle.LoadAsset("cs_default", typeof(Texture)) as Texture;
                 claySkinRed = claysurgeonbundle.LoadAsset("cs_red_delicious", typeof(Texture)) as Texture;
@@ -337,12 +347,14 @@ namespace ClaySurgeonMod
 
             static void QuickMenuManagerPostStart(QuickMenuManager __instance)
             {
-                HDRenderPipelineAsset assetHDRP = QualitySettings.renderPipeline as HDRenderPipelineAsset;
-                if (assetHDRP == null) return;
+                //HDRenderPipelineAsset assetHDRP = QualitySettings.renderPipeline as HDRenderPipelineAsset;
+                //if (assetHDRP == null) return;
 
-                RenderPipelineSettings settings = assetHDRP.currentPlatformRenderPipelineSettings;
-                settings.supportMotionVectors = true;
-                assetHDRP.currentPlatformRenderPipelineSettings = settings;
+                //RenderPipelineSettings settings = assetHDRP.currentPlatformRenderPipelineSettings;
+                //settings.supportMotionVectors = true;
+                //assetHDRP.currentPlatformRenderPipelineSettings = settings;
+
+                GameObject sleepyFilter = Instantiate(sleepyFilterPrefab, GameObject.Find(renderPath).transform);
 
                 allEnemiesList.Clear();
                 List<SpawnableEnemyWithRarity>[] allEnemyLists =
@@ -352,6 +364,7 @@ namespace ClaySurgeonMod
 
                 if (!Plugin.configSpawnOverride.Value)
                     return;
+
 
                 foreach (List<SpawnableEnemyWithRarity> enemies in allEnemyLists)
                 {
@@ -397,6 +410,7 @@ namespace ClaySurgeonMod
                 Transform clayClone = Instantiate(clayPrefab, __instance.transform.position, __instance.transform.rotation, __instance.transform.Find(anchorPath)).transform;
                 __instance.creatureAnimator = clayClone.GetComponentInChildren<Animator>();
                 __instance.skin = clayClone.GetComponentInChildren<SkinnedMeshRenderer>();
+                __instance.snipScissors = snipClip;
                 __instance.gameObject.GetComponentInChildren<ScanNodeProperties>().headerText = "Clay Surgeon";
                 __instance.skinnedMeshRenderers = clayClone.gameObject.GetComponentsInChildren<SkinnedMeshRenderer>();
                 __instance.meshRenderers = clayClone.gameObject.GetComponentsInChildren<MeshRenderer>();
@@ -425,16 +439,41 @@ namespace ClaySurgeonMod
                         break;
                     }
                 }
-                Volume volume = __instance.gameObject.GetComponentInChildren<UnityEngine.Rendering.Volume>();
-                if (volume == null) throw new System.NullReferenceException(nameof(UnityEngine.Rendering.VolumeProfile));
-                else
+            }
+
+            [HarmonyPatch(typeof(ClaySurgeonAI), "Update")]
+            [HarmonyPostfix]
+
+            static void ClaySurgeonAIPostUpdate(ClaySurgeonAI __instance)
+            {
+                GameObject sleepyFilter = GameObject.Find("Systems/Rendering/SleepyFilter(Clone)");
+
+         
+
+                if (__instance.isMaster)
                 {
-                    volume.weight = configScreenEffects.Value;
-                }
-                LensDistortion distortion;
-                if (volume.profile.TryGet<LensDistortion>(out distortion))
-                {
-                    distortion.intensity.value = configScreenDistortion.Value;
+                    float minDist = float.MaxValue;
+                    for (int i = 0; i < __instance.allClaySurgeons.Count; i++)
+                    {
+                        if (!(__instance.allClaySurgeons[i] == null) && !__instance.allClaySurgeons[i].isEnemyDead)
+                        {
+                            float dist = Vector3.Distance(StartOfRound.Instance.audioListener.transform.position, __instance.allClaySurgeons[i].transform.position + Vector3.up * 0.7f);
+
+                            if (dist < minDist)
+                            {
+                                minDist = dist;
+                            }
+                        }
+                    }
+
+                    if (sleepyFilter != null)
+                    {
+                        sleepyFilter.GetComponentInChildren<Volume>().weight = Math.Clamp(-(minDist - (__instance.minDistance + 8)) / ((__instance.maxDistance + 8) - (__instance.minDistance + 8)), 0, 0.75f);
+                    }
+                    else
+                    {
+                        Plugin.Logger.LogError("sleepyFilter is null!");
+                    }
                 }
             }
 
@@ -446,6 +485,7 @@ namespace ClaySurgeonMod
                 float num = Vector3.Distance(StartOfRound.Instance.audioListener.transform.position, __instance.transform.position + Vector3.up * 0.7f);
                 __instance.minDistance = configMinVisibility.Value;
                 __instance.maxDistance = configMaxVisibility.Value;
+
                 Material[] barberMats = __instance.skin.sharedMaterials;
                 foreach (Material barberMat in barberMats)
                     barberMat.SetFloat("_AlphaCutoff", (num - __instance.minDistance) / (__instance.maxDistance - __instance.minDistance));     
@@ -459,8 +499,13 @@ namespace ClaySurgeonMod
                 if (Plugin.configCurve.Value)
                 {
                     float currentInterval = Mathf.Clamp(intervalCurve.Evaluate((float)TimeOfDay.Instance.hour / TimeOfDay.Instance.numberOfHours), 1.25f, 2.75f);
-                    foreach (ClaySurgeonAI barber in UnityEngine.Object.FindObjectsOfType<ClaySurgeonAI>())
-                        barber.currentInterval = currentInterval;
+                    foreach (EnemyAI enemy in RoundManager.Instance.SpawnedEnemies)
+                    {
+                        if (enemy is ClaySurgeonAI barber)
+                        {
+                            barber.currentInterval = currentInterval;
+                        }
+                    }
 
                     // skip the original function
                     return false;
